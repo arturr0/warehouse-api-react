@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -8,10 +6,9 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const a = process.env.ATLAS;
-console.log(a);
+
 // Updated MongoDB connection section
-mongoose.connect(process.env.ATLAS || 'mongodb://localhost:27017/warehouse')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/warehouse')
   .then(() => {
     console.log('Connected to MongoDB');
     seedInitialData().then(() => {
@@ -199,3 +196,4 @@ app.listen(PORT, () => {
 
 
 
+//seedInitialData();

@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -8,37 +6,14 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const a = process.env.ATLAS;
-console.log(a);
-// Updated MongoDB connection section
-mongoose.connect(process.env.ATLAS || 'mongodb://localhost:27017/warehouse')
-  .then(() => {
-    console.log('Connected to MongoDB');
-    seedInitialData().then(() => {
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-        console.log(`Access at: http://localhost:${PORT}`);
-      });
-    });
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
 
-// Updated seed function
-async function seedInitialData() {
-  try {
-    const count = await Product.countDocuments();
-    if (count === 0) {
-      await Product.insertMany([
-        { name: 'laptop', quantity: 15 },
-        { name: 'microwave', quantity: 7 },
-        { name: 'mouse', quantity: 20 }
-      ]);
-      console.log('Initial data seeded');
-    }
-  } catch (err) {
-    console.error('Error seeding data:', err);
-  }
-}
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/warehouse', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 // Product Schema
 const productSchema = new mongoose.Schema({
@@ -187,7 +162,7 @@ app.post('/api/products/:id/down', async (req, res) => {
 });
 
 // Serve React app
-app.get('/', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
@@ -197,5 +172,17 @@ app.listen(PORT, () => {
   console.log(`Access at: http://localhost:${PORT}`);
 });
 
+// Seed initial data if needed
+async function seedInitialData() {
+  const count = await Product.countDocuments();
+  if (count === 0) {
+    await Product.insertMany([
+      { name: 'laptop', quantity: 15 },
+      { name: 'microwave', quantity: 7 },
+      { name: 'mouse', quantity: 20 }
+    ]);
+    console.log('Initial data seeded');
+  }
+}
 
-
+seedInitialData();
