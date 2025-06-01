@@ -19,9 +19,9 @@ const Warehouse = () => {
     e.preventDefault();
     if (!newProduct.name.trim() || isNaN(newProduct.quantity)) return;
     
-    await axios.post('/api/products', newProduct);
+    const res = await axios.post('/api/products', newProduct);
+    setProducts([res.data, ...products]);  // Prepend new product
     setNewProduct({ name: '', quantity: '' });
-    fetchProducts();
   };
 
   const handleUpdate = async (id, name, quantity) => {
@@ -93,7 +93,7 @@ const Warehouse = () => {
           <tbody>
             {products.map((product) => (
               <ProductRow
-                key={product.id}
+                key={product._id}
                 product={product}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}

@@ -7,8 +7,12 @@ const Warehouse = () => {
   const [newProduct, setNewProduct] = useState({ name: '', quantity: '' });
 
   const fetchProducts = async () => {
-    const res = await axios.get('/api/products');
-    setProducts(res.data);
+    try {
+      const res = await axios.get('/api/products');
+      setProducts(res.data);
+    } catch (error) {
+      console.error('Fetch failed:', error);
+    }
   };
 
   useEffect(() => {
@@ -19,15 +23,21 @@ const Warehouse = () => {
     e.preventDefault();
     if (!newProduct.name.trim() || isNaN(newProduct.quantity)) return;
     
-    await axios.post('/api/products', newProduct);
+    const res = await axios.post('/api/products', newProduct);
+    setProducts([res.data, ...products]);  // Prepend new product
     setNewProduct({ name: '', quantity: '' });
-    fetchProducts();
   };
 
-  const handleUpdate = async (id, name, quantity) => {
+  // Example for handleUpdate:
+const handleUpdate = async (id, name, quantity) => {
+  try {
     await axios.put(`/api/products/${id}`, { name, quantity });
     fetchProducts();
-  };
+  } catch (error) {
+    console.error('Update failed:', error);
+    alert(`Update failed: ${error.response?.data?.error || error.message}`);
+  }
+};
   
   const handleDelete = async (id) => {
     await axios.delete(`/api/products/${id}`);
@@ -35,13 +45,23 @@ const Warehouse = () => {
   };
 
   const handleIncrement = async (id) => {
-    await axios.post(`/api/products/quantity/${id}`);
-    fetchProducts();
+    try {
+      await axios.post(`/api/products/quantity/${id}`);
+      fetchProducts();
+    } catch (error) {
+      console.error('Increment failed:', error.response?.data?.error || error.message);
+      alert(`Increment failed: ${error.response?.data?.error || 'Server error'}`);
+    }
   };
-
+  
   const handleDecrement = async (id) => {
-    await axios.post(`/api/products/down/${id}`);
-    fetchProducts();
+    try {
+      await axios.post(`/api/products/down/${id}`);
+      fetchProducts();
+    } catch (error) {
+      console.error('Decrement failed:', error.response?.data?.error || error.message);
+      alert(`Decrement failed: ${error.response?.data?.error || 'Server error'}`);
+    }
   };
 
   return (
@@ -93,7 +113,7 @@ const Warehouse = () => {
           <tbody>
             {products.map((product) => (
               <ProductRow
-                key={product.id}
+                key={product._id}
                 product={product}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
@@ -115,7 +135,8 @@ const Warehouse = () => {
 const ProductRow = ({ product, onUpdate, onDelete, onIncrement, onDecrement }) => {
   const [name, setName] = useState(product.name);
   const [quantity, setQuantity] = useState(product.quantity);
-  
+
+  // Add useEffect to sync with props
   useEffect(() => {
     setName(product.name);
     setQuantity(product.quantity);
@@ -123,7 +144,7 @@ const ProductRow = ({ product, onUpdate, onDelete, onIncrement, onDecrement }) =
 
   return (
     <tr>
-      <td>{product.id}</td>
+      <td>{product._id}</td>
       <td>
         <input
           type="text"
@@ -141,15 +162,15 @@ const ProductRow = ({ product, onUpdate, onDelete, onIncrement, onDecrement }) =
         />
       </td>
       <td className="actions">
-        <button className="btn-update" onClick={() => onUpdate(product.id, name, quantity)}>
+        <button className="btn-update" onClick={() => onUpdate(product._id, name, quantity)}>
           UPDATE
         </button>
-        <button className="btn-delete" onClick={() => onDelete(product.id)}>
+        <button className="btn-delete" onClick={() => onDelete(product._id)}>
           DELETE
         </button>
         <div className="quantity-controls">
-          <button className="btn-increment" onClick={() => onIncrement(product.id)}>+</button>
-          <button className="btn-decrement" onClick={() => onDecrement(product.id)}>-</button>
+          <button className="btn-increment" onClick={() => onIncrement(product._id)}>+</button>
+          <button className="btn-decrement" onClick={() => onDecrement(product._id)}>-</button>
         </div>
       </td>
     </tr>

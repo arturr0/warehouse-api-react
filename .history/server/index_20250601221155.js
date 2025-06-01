@@ -46,6 +46,7 @@ const productSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 0 }
 }, { timestamps: true });
 
+// Add this to your productSchema
 productSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
@@ -148,6 +149,7 @@ app.route("/api/products/:id")
   });
 
 app.post('/api/products/:id/quantity', async (req, res) => {
+  console.log(req);
   try {
     const { id } = req.params;
     
@@ -174,12 +176,24 @@ app.post('/api/products/:id/quantity', async (req, res) => {
 
 app.post('/api/products/:id/down', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid product ID' });
+    }
+    
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
     if (product.quantity <= 0) {
       return res.status(400).json({ error: 'Quantity cannot be negative' });
     }
-  }
-  catch (err) {
+    
+    product.quantity -= 1;
+    await product.save();
+    res.json(product);
+  } catch (err) {
     console.error('Error decrementing quantity:', err);
     res.status(500).json({ error: 'Server error' });
   }

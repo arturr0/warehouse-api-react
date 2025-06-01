@@ -148,6 +148,7 @@ app.route("/api/products/:id")
   });
 
 app.post('/api/products/:id/quantity', async (req, res) => {
+  console.log(req);
   try {
     const { id } = req.params;
     
@@ -173,6 +174,7 @@ app.post('/api/products/:id/quantity', async (req, res) => {
 });
 
 app.post('/api/products/:id/down', async (req, res) => {
+  console.log(req);
   try {
     const product = await Product.findById(req.params.id);
     if (product.quantity <= 0) {
