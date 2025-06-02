@@ -83,12 +83,12 @@ app.post('/api/products', async (req, res) => {
     if (!name || isNaN(quantity)) {
       return res.status(400).json({ error: 'Invalid product data' });
     }
-    
+
     const newProduct = new Product({
       name: name.trim(),
       quantity: parseInt(quantity)
     });
-    
+
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (err) {
@@ -102,24 +102,24 @@ app.route("/api/products/:id")
     try {
       const { id } = req.params;
       const { name, quantity } = req.body;
-      
+
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: 'Invalid product ID' });
       }
-      
+
       const updatedProduct = await Product.findByIdAndUpdate(
         req.params.id,
-        { 
+        {
           name: name || undefined,
           quantity: quantity ? parseInt(quantity) : undefined
         },
         { new: true }
       );
-      
+
       if (!updatedProduct) {
         return res.status(404).json({ error: 'Product not found' });
       }
-      
+
       res.json(updatedProduct);
     } catch (err) {
       console.error('Error updating product:', err);
@@ -129,17 +129,17 @@ app.route("/api/products/:id")
   .delete(async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: 'Invalid product ID' });
       }
-      
+
       const deletedProduct = await Product.findByIdAndDelete(id);
-      
+
       if (!deletedProduct) {
         return res.status(404).json({ error: 'Product not found' });
       }
-      
+
       res.json({ success: true });
     } catch (err) {
       console.error('Error deleting product:', err);
@@ -150,21 +150,21 @@ app.route("/api/products/:id")
 app.post('/api/products/:id/quantity', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid product ID' });
     }
-    
+
     const product = await Product.findByIdAndUpdate(
       id,
       { $inc: { quantity: 1 } },
       { new: true }
     );
-    
+
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    
+
     res.json(product);
   } catch (err) {
     console.error('Error incrementing quantity:', err);
@@ -172,18 +172,36 @@ app.post('/api/products/:id/quantity', async (req, res) => {
   }
 });
 
-app.post('/api/products/:id/down', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (product.quantity <= 0) {
-      return res.status(400).json({ error: 'Quantity cannot be negative' });
-    }
+const validateObjectId = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid ID format' });
   }
-  catch (err) {
+  next();
+};
+
+app.post('/api/products/:id/down', validateObjectId, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: id, quantity: { $gt: 0 } },
+      { $inc: { quantity: -1 } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(400).json({
+        error: 'Cannot decrement: Quantity would be negative or product not found'
+      });
+    }
+
+    res.json(updatedProduct);
+  } catch (err) {
     console.error('Error decrementing quantity:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
 
 // Serve React app
 app.get('/', (req, res) => {

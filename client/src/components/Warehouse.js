@@ -18,7 +18,7 @@ const Warehouse = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newProduct.name.trim() || isNaN(newProduct.quantity)) return;
-    
+
     await axios.post('/api/products', newProduct);
     setNewProduct({ name: '', quantity: '' });
     fetchProducts();
@@ -28,19 +28,19 @@ const Warehouse = () => {
     await axios.put(`/api/products/${id}`, { name, quantity });
     fetchProducts();
   };
-  
+
   const handleDelete = async (id) => {
     await axios.delete(`/api/products/${id}`);
     fetchProducts();
   };
 
   const handleIncrement = async (id) => {
-    await axios.post(`/api/products/quantity/${id}`);
+    await axios.post(`/api/products/${id}/quantity`);
     fetchProducts();
   };
 
   const handleDecrement = async (id) => {
-    await axios.post(`/api/products/down/${id}`);
+    await axios.post(`/api/products/${id}/down`);
     fetchProducts();
   };
 
@@ -48,39 +48,39 @@ const Warehouse = () => {
     <div className="warehouse-container">
       <div className="warehouse-section">
         <h1>WAREHOUSE MANAGEMENT</h1>
-        
+
         <button className="btn-primary" onClick={fetchProducts}>
           REFRESH PRODUCTS
         </button>
-        
+
         <form onSubmit={handleCreate} className="create-form">
           <div className="form-group">
             <label>Product Name</label>
             <input
               type="text"
               value={newProduct.name}
-              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
               placeholder="Enter product name"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Quantity</label>
             <input
               type="number"
               value={newProduct.quantity}
-              onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
+              onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
               placeholder="Enter quantity"
             />
           </div>
-          
+
           <button type="submit" className="btn-create">
             ADD PRODUCT
           </button>
         </form>
-        
+
         <div className="divider"></div>
-        
+
         <table className="products-table">
           <thead>
             <tr>
@@ -104,7 +104,7 @@ const Warehouse = () => {
           </tbody>
         </table>
       </div>
-      
+
       <div className="chart-section">
         <Chart products={products} />
       </div>
@@ -115,7 +115,7 @@ const Warehouse = () => {
 const ProductRow = ({ product, onUpdate, onDelete, onIncrement, onDecrement }) => {
   const [name, setName] = useState(product.name);
   const [quantity, setQuantity] = useState(product.quantity);
-  
+
   useEffect(() => {
     setName(product.name);
     setQuantity(product.quantity);
