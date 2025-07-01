@@ -36,7 +36,7 @@ const Chart = ({ products }) => {
               p.fill(255);
               p.textSize(16);
               p.textAlign(p.CENTER);
-              p.text(`ID: ${prod.id}`, x + barWidth / 2, 520);
+              //p.text(`ID: ${prod.id}`, x + barWidth / 2, 520);
               p.text(prod.name, x + barWidth / 2, 545);
               p.text(`Qty: ${prod.quantity}`, x + barWidth / 2, 570);
               p.fill(29, 185, 157);
